@@ -1,4 +1,4 @@
-export default class ScrollListener {
+export class ScrollListener {
 
     /**
      * @param {Number} timeout
@@ -8,7 +8,9 @@ export default class ScrollListener {
     constructor(timeout, threshold, callback) {
         this.timeout = timeout;
         this.threshold = threshold;
+        this.offsetFromTop = 0;
         this.timer = 0;
+        this.document = document.documentElement;
         this.callback = callback;
         window.addEventListener('scroll', this._timer.bind(this, this._onScroll));
     }
@@ -26,11 +28,40 @@ export default class ScrollListener {
      * @private
      */
     _onScroll() {
-        let doc = document.documentElement;
-        let top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
-
-        if (top + doc.clientHeight + this.threshold >= doc.scrollHeight) {
-            this.callback();
+        let scrollFromTop = (window.pageYOffset || this.document.scrollTop) - (this.document.clientTop || 0);
+        if (this._isBottomThresholdReached(scrollFromTop)) {
+            this.callback(EVENT_TYPE_ADD);
+        } else if (this._isTopThresholdReached(scrollFromTop)) {
+            this.callback(EVENT_TYPE_SUBTRACT);
         }
     }
+
+    /**
+     * @param {Number} scrollFromTop
+     * @return {boolean}
+     * @private
+     */
+    _isBottomThresholdReached(scrollFromTop) {
+        return (scrollFromTop + this.document.clientHeight + this.threshold >= this.document.scrollHeight);
+    }
+
+    /**
+     * @param {Number} scrollFromTop
+     * @return {boolean}
+     * @private
+     */
+    _isTopThresholdReached(scrollFromTop) {
+        return (scrollFromTop - this.offsetFromTop <= this.threshold);
+    }
+
+    /**
+     * @param {Number} offset
+     * @public
+     */
+    setOffsetFromTop(offset) {
+        this.offsetFromTop = offset;
+    }
 }
+
+export const EVENT_TYPE_ADD = 'add';
+export const EVENT_TYPE_SUBTRACT = 'subtract';

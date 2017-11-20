@@ -1,41 +1,51 @@
 import Item from './item';
-import ScrollListener from "./scroll-listener";
+import {EVENT_TYPE_ADD, EVENT_TYPE_SUBTRACT, ScrollListener} from "./scroll-listener";
 
 export default class Scroller {
 
     /**
-     * @param {{itemsPerPage, maxItemsVisible, threshold, scrollTimeout}} params
+     * @param {{itemsPerPage, maxItemsVisible, maxTotalItems, threshold, scrollTimeout}} params
      * @constructor
      * @return {Element}
      */
     constructor(params) {
         this.params = params;
-        this.items = [];
-        this.subTest = 0;
 
-        this.from = 1;
-        this.to = this.from + this.params.itemsPerPage;
+        this.state = {
+            itemsVisible: [],
+            itemsHidden: [],
+            from: 1,
+            to: this.params.itemsPerPage
+        };
 
-        this.items = this._setItems(this.from, this.to);
+        this.scrollListener = new ScrollListener(
+            this.params.scrollTimeout,
+            this.params.threshold,
+            this.onModify.bind(this)
+        );
 
-        new ScrollListener(this.params.scrollTimeout, this.params.threshold, this.add.bind(this));
-
-        this.render();
+        this._render();
     }
 
     /**
-     * @public
+     * @private
      */
-    render() {
+    _render() {
         let itemsNode = document.createElement('div');
         itemsNode.className = 'scroller';
+        itemsNode.id = 'scroller';
         this.itemsNode = itemsNode;
-        this.renderList();
+        this._renderList();
     }
 
-    renderList() {
+    /**
+     * @private
+     */
+    _renderList() {
+        this._setItems();
         this.itemsNode.innerHTML = '';
-        this.items.map(this._renderItem.bind(this));
+        this.state.itemsVisible.map(this._renderItem.bind(this));
+        this._recalculateOffsetFromTop();
     }
 
     /**
@@ -47,47 +57,87 @@ export default class Scroller {
     }
 
     /**
-     * @private
+     * @param {string} type
      */
-    _subtract() {
-        if (this.from - this.params.itemsPerPage <= 0) {
-            return false;
+    onModify(type) {
+        switch (type) {
+            case EVENT_TYPE_ADD:
+                this._add();
+                break;
+            case EVENT_TYPE_SUBTRACT:
+                this._subtract();
+                break;
         }
 
-        this.from = this.from - this.params.itemsPerPage;
-        this.to = this.to - this.params.itemsPerPage;
-
-        this.items = this._setItems(this.from, this.to);
-        this.renderList();
-        this.itemsNode.style.marginTop = this.subTest * 117 + 'px';
-    }
-
-    add() {
-        this.from = this.from + this.params.itemsPerPage;
-        this.to = this.to + this.params.itemsPerPage;
-
-        this.items = this._setItems(this.from, this.to);
-        this.renderList();
+        this._renderList();
     }
 
     /**
-     * @param {Number} from
-     * @param {Number} to
+     * @return {boolean}
      * @private
      */
-    _setItems(from, to) {
-        let items = this.items;
-        while (from < to) {
-            items.push(new Item(from));
-            from++;
+    _subtract() {
+        if (this.state.from - this.params.itemsPerPage <= 0) {
+            this.setState('from', 1);
+            this.setState('to', 1 + this.params.itemsPerPage);
+            return false;
         }
 
-        if (this.items.length > this.params.maxItemsVisible) {
-            this.subTest = this.subTest + items.length - this.params.maxItemsVisible;
-            return items.slice(items.length - this.params.maxItemsVisible, items.length)
+        this.setState('from', this.state.from - this.params.itemsPerPage);
+        this.setState('to', this.state.to - this.params.itemsPerPage);
+    }
+
+    /**
+     * @return {boolean}
+     * @private
+     */
+    _add() {
+        if (this.state.to >= this.params.maxTotalItems) {
+            return false;
         }
 
-        return items;
+        this.setState('to', this.state.to + this.params.itemsPerPage);
+
+        if (this.state.to - this.params.maxItemsVisible > this.state.from) {
+            this.setState('from', this.state.from + this.params.itemsPerPage);
+        }
+    }
+
+    /**
+     * @private
+     */
+    _recalculateOffsetFromTop() {
+        let offset = this.state.itemsHidden.length * 115;
+        this.scrollListener.setOffsetFromTop(offset);
+        this.itemsNode.style.top = offset + 'px';
+    }
+
+    /**
+     * @private
+     */
+    _setItems() {
+        let itemsVisible = [];
+        let itemsHidden = [];
+        let index = 0;
+
+        while (index < this.state.to) {
+            index++;
+            let item = new Item(index);
+            (this.state.from === 1 || index >= this.state.from) ? itemsVisible.push(item) : itemsHidden.push(item);
+        }
+
+        this.setState('itemsVisible', itemsVisible);
+        this.setState('itemsHidden', itemsHidden);
+    }
+
+    /**
+     * @param {String} key
+     * @param {String|Number|Object} value
+     */
+    setState(key, value) {
+        let state = {};
+        state[key] = value;
+        this.state = Object.assign({}, this.state, state);
     }
 
     /**

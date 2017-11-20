@@ -13,7 +13,7 @@ export default class Item {
     render () {
         let elem = document.createElement('div');
         elem.className = 'scroller__item';
-        elem.innerHTML = 'Test ' + this.index;
+        elem.innerHTML = 'Element ' + this.index;
 
         return elem;
     }
