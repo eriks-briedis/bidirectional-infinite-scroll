@@ -63,9 +63,8 @@ export default class Scroller {
      * @public
      */
     subtract() {
-        let from = this.state.from - this.params.itemsPerPage;
-        this.setState('from', Math.max(1, from));
-        this.setState('to', this.state.to - this.params.itemsPerPage);
+        this.setState('from', Math.max(1, this.state.from - this.params.itemsPerPage));
+        this.setState('to', Math.max(this.params.itemsPerPage, this.state.to - this.params.itemsPerPage));
     }
 
     /**
