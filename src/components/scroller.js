@@ -24,13 +24,10 @@ export default class Scroller {
             this.onModify.bind(this)
         );
 
-        this._render();
+        this._setItems();
     }
 
-    /**
-     * @private
-     */
-    _render() {
+    render() {
         let itemsNode = document.createElement('div');
         itemsNode.className = 'scroller';
         itemsNode.id = 'scroller';
@@ -62,10 +59,10 @@ export default class Scroller {
     onModify(type) {
         switch (type) {
             case EVENT_TYPE_ADD:
-                this._add();
+                this.add();
                 break;
             case EVENT_TYPE_SUBTRACT:
-                this._subtract();
+                this.subtract();
                 break;
         }
 
@@ -74,9 +71,8 @@ export default class Scroller {
 
     /**
      * @return {boolean}
-     * @private
      */
-    _subtract() {
+    subtract() {
         if (this.state.from - this.params.itemsPerPage <= 0) {
             this.setState('from', 1);
             this.setState('to', 1 + this.params.itemsPerPage);
@@ -89,9 +85,8 @@ export default class Scroller {
 
     /**
      * @return {boolean}
-     * @private
      */
-    _add() {
+    add() {
         if (this.state.to >= this.params.maxTotalItems) {
             return false;
         }
