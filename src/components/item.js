@@ -5,6 +5,8 @@ export default class Item {
      */
     constructor (index) {
         this.index = index;
+        this.height = 115;
+        this.node = this.render();
     }
 
     /**
@@ -16,5 +18,22 @@ export default class Item {
         elem.innerHTML = 'Element ' + this.index;
 
         return elem;
+    }
+
+    /**
+     * @param {Element} parentNode
+     * @public
+     */
+    appendTo(parentNode) {
+        parentNode.appendChild(this.node);
+    }
+
+    /**
+     * TODO Height is hard-coded for now.
+     * @return {number}
+     * @public
+     */
+    getHeight() {
+        return this.height;
     }
 }

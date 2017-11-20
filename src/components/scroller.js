@@ -10,19 +10,12 @@ export default class Scroller {
      */
     constructor(params) {
         this.params = params;
-
-        this.state = {
-            itemsVisible: [],
-            itemsHidden: [],
-            from: 1,
-            to: this.params.itemsPerPage
-        };
-
         this.scrollListener = new ScrollListener(
             this.params.scrollTimeout,
             this.params.threshold,
             this.onModify.bind(this)
         );
+        this.initState();
     }
 
     render() {
@@ -48,7 +41,7 @@ export default class Scroller {
      * @private
      */
     _renderItem(item) {
-        this.itemsNode.appendChild(item.render());
+        item.appendTo(this.itemsNode);
     }
 
     /**
@@ -95,9 +88,17 @@ export default class Scroller {
      * @private
      */
     _recalculateOffsetFromTop() {
-        let offset = this.state.itemsHidden.length * 115;
+        let offset = this._getOffsetFromHiddenItems();
         this.scrollListener.setOffsetFromTop(offset);
         this.itemsNode.style.top = offset + 'px';
+    }
+
+    /**
+     * @return {number}
+     * @private
+     */
+    _getOffsetFromHiddenItems() {
+        return this.state.itemsHidden.reduce((prevVal, item) => prevVal + item.getHeight(), 0);
     }
 
     /**
@@ -116,6 +117,15 @@ export default class Scroller {
 
         this.setState('itemsVisible', itemsVisible);
         this.setState('itemsHidden', itemsHidden);
+    }
+
+    initState() {
+        this.state = {
+            itemsVisible: [],
+            itemsHidden: [],
+            from: 1,
+            to: this.params.itemsPerPage
+        };
     }
 
     /**
