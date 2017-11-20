@@ -18,12 +18,18 @@ export default class Scroller {
         this.initState();
     }
 
+    /**
+     * @return {Scroller}
+     * @public
+     */
     render() {
         let itemsNode = document.createElement('div');
         itemsNode.className = 'scroller';
         itemsNode.id = 'scroller';
         this.itemsNode = itemsNode;
         this._renderList();
+
+        return this;
     }
 
     /**
@@ -41,7 +47,7 @@ export default class Scroller {
      * @private
      */
     _renderItem(item) {
-        item.appendTo(this.itemsNode);
+        item.render().appendTo(this.itemsNode);
     }
 
     /**

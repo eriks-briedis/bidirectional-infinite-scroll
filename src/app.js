@@ -7,5 +7,4 @@ let scroller = new Scroller({
     scrollTimeout: 50,
     maxTotalItems: 100
 });
-scroller.render();
-scroller.appendTo(document.getElementById('app'));
+scroller.render().appendTo(document.getElementById('app'));

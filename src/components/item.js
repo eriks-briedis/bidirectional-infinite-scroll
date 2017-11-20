@@ -6,18 +6,17 @@ export default class Item {
     constructor (index) {
         this.index = index;
         this.height = 115;
-        this.node = this.render();
     }
 
     /**
-     * @return {Element}
+     * @return {Item}
      */
     render () {
-        let elem = document.createElement('div');
-        elem.className = 'scroller__item';
-        elem.innerHTML = 'Element ' + this.index;
+        this.node = document.createElement('div');
+        this.node.className = 'scroller__item';
+        this.node.innerHTML = 'Element ' + this.index;
 
-        return elem;
+        return this;
     }
 
     /**
