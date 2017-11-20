@@ -1,6 +1,8 @@
 export class ScrollListener {
 
     /**
+     * Handles scroll events and fires callback when top/bottom threshold is reached
+     *
      * @param {Number} timeout
      * @param {Number} threshold
      * @param {function} callback
@@ -18,6 +20,8 @@ export class ScrollListener {
     }
 
     /**
+     * Throttle scroll events for performance
+     *
      * @param {function} callback
      * @private
      */

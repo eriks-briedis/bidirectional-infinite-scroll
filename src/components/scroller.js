@@ -19,13 +19,14 @@ export default class Scroller {
     }
 
     /**
+     * Appends a new .scroller node to parent element
+     *
      * @return {Scroller}
      * @public
      */
     render() {
         let itemsNode = document.createElement('div');
         itemsNode.className = 'scroller';
-        itemsNode.id = 'scroller';
         this.itemsNode = itemsNode;
         this._renderList();
 
@@ -39,7 +40,7 @@ export default class Scroller {
         this.setItems();
         this.itemsNode.innerHTML = '';
         this.state.itemsVisible.map(this._renderItem.bind(this));
-        this._recalculateOffsetFromTop();
+        this._updateOffsetFromTop();
     }
 
     /**
@@ -51,6 +52,9 @@ export default class Scroller {
     }
 
     /**
+     * Callback method for ScrollListener
+     * Fires when top/bottom threshold is reached
+     *
      * @param {string} type
      */
     onModify(type) {
@@ -90,15 +94,19 @@ export default class Scroller {
     }
 
     /**
+     * Offset from top needed to compensate removed (hidden) items height
+     *
      * @private
      */
-    _recalculateOffsetFromTop() {
+    _updateOffsetFromTop() {
         let offset = this._getOffsetFromHiddenItems();
         this.scrollListener.setOffsetFromTop(offset);
         this.itemsNode.style.top = offset + 'px';
     }
 
     /**
+     * Sums all hidden items height
+     *
      * @return {number}
      * @private
      */
@@ -107,7 +115,9 @@ export default class Scroller {
     }
 
     /**
-     * Render items as hidden or visible depending on visible range
+     * Adds items to hidden or visible arrays depending on visible range
+     *
+     * And updates state
      */
     setItems() {
         let itemsVisible = [];
@@ -124,6 +134,9 @@ export default class Scroller {
         this.setState('itemsHidden', itemsHidden);
     }
 
+    /**
+     * Set initial state
+     */
     initState() {
         this.state = {
             itemsVisible: [],
@@ -134,6 +147,8 @@ export default class Scroller {
     }
 
     /**
+     * Updates/inserts state value and updates state object
+     *
      * @param {String} key
      * @param {String|Number|Object} value
      */
