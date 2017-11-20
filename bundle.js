@@ -80,11 +80,10 @@ var scroller = new _scroller2.default({
     threshold: 300,
     itemsPerPage: 10,
     maxItemsVisible: 30,
-    scrollTimeout: 100,
+    scrollTimeout: 50,
     maxTotalItems: 100
 });
-scroller.render();
-scroller.appendTo(document.getElementById('app'));
+scroller.render().appendTo(document.getElementById('app'));
 
 /***/ }),
 /* 1 */
@@ -120,25 +119,27 @@ var Scroller = function () {
         _classCallCheck(this, Scroller);
 
         this.params = params;
-
-        this.state = {
-            itemsVisible: [],
-            itemsHidden: [],
-            from: 1,
-            to: this.params.itemsPerPage
-        };
-
         this.scrollListener = new _scrollListener.ScrollListener(this.params.scrollTimeout, this.params.threshold, this.onModify.bind(this));
+        this.initState();
     }
+
+    /**
+     * Appends a new .scroller node to parent element
+     *
+     * @return {Scroller}
+     * @public
+     */
+
 
     _createClass(Scroller, [{
         key: 'render',
         value: function render() {
             var itemsNode = document.createElement('div');
             itemsNode.className = 'scroller';
-            itemsNode.id = 'scroller';
             this.itemsNode = itemsNode;
             this._renderList();
+
+            return this;
         }
 
         /**
@@ -148,10 +149,10 @@ var Scroller = function () {
     }, {
         key: '_renderList',
         value: function _renderList() {
-            this._setItems();
+            this.setItems();
             this.itemsNode.innerHTML = '';
             this.state.itemsVisible.map(this._renderItem.bind(this));
-            this._recalculateOffsetFromTop();
+            this._updateOffsetFromTop();
         }
 
         /**
@@ -162,10 +163,13 @@ var Scroller = function () {
     }, {
         key: '_renderItem',
         value: function _renderItem(item) {
-            this.itemsNode.appendChild(item.render());
+            item.render().appendTo(this.itemsNode);
         }
 
         /**
+         * Callback method for ScrollListener
+         * Fires when top/bottom threshold is reached
+         *
          * @param {string} type
          */
 
@@ -174,72 +178,83 @@ var Scroller = function () {
         value: function onModify(type) {
             switch (type) {
                 case _scrollListener.EVENT_TYPE_ADD:
-                    this._add();
+                    this.add();
                     break;
                 case _scrollListener.EVENT_TYPE_SUBTRACT:
-                    this._subtract();
+                    this.subtract();
                     break;
             }
-
             this._renderList();
         }
 
         /**
-         * @return {boolean}
-         * @private
+         * @public
          */
 
     }, {
-        key: '_subtract',
-        value: function _subtract() {
-            if (this.state.from - this.params.itemsPerPage <= 0) {
-                this.setState('from', 1);
-                this.setState('to', 1 + this.params.itemsPerPage);
-                return false;
-            }
-
-            this.setState('from', this.state.from - this.params.itemsPerPage);
-            this.setState('to', this.state.to - this.params.itemsPerPage);
+        key: 'subtract',
+        value: function subtract() {
+            this.setState('from', Math.max(1, this.state.from - this.params.itemsPerPage));
+            this.setState('to', Math.max(this.params.itemsPerPage, this.state.to - this.params.itemsPerPage));
         }
 
         /**
          * @return {boolean}
-         * @private
+         * @public
          */
 
     }, {
-        key: '_add',
-        value: function _add() {
+        key: 'add',
+        value: function add() {
             if (this.state.to >= this.params.maxTotalItems) {
                 return false;
             }
 
             this.setState('to', this.state.to + this.params.itemsPerPage);
 
-            if (this.state.to - this.params.maxItemsVisible > this.state.from) {
+            if (this.state.to - this.state.from >= this.params.maxItemsVisible) {
                 this.setState('from', this.state.from + this.params.itemsPerPage);
             }
         }
 
         /**
+         * Offset from top needed to compensate removed (hidden) items height
+         *
          * @private
          */
 
     }, {
-        key: '_recalculateOffsetFromTop',
-        value: function _recalculateOffsetFromTop() {
-            var offset = this.state.itemsHidden.length * 115;
+        key: '_updateOffsetFromTop',
+        value: function _updateOffsetFromTop() {
+            var offset = this._getOffsetFromHiddenItems();
             this.scrollListener.setOffsetFromTop(offset);
             this.itemsNode.style.top = offset + 'px';
         }
 
         /**
+         * Sums all hidden items height
+         *
+         * @return {number}
          * @private
          */
 
     }, {
-        key: '_setItems',
-        value: function _setItems() {
+        key: '_getOffsetFromHiddenItems',
+        value: function _getOffsetFromHiddenItems() {
+            return this.state.itemsHidden.reduce(function (prevVal, item) {
+                return prevVal + item.getHeight();
+            }, 0);
+        }
+
+        /**
+         * Adds items to hidden or visible arrays depending on visible range
+         *
+         * And updates state
+         */
+
+    }, {
+        key: 'setItems',
+        value: function setItems() {
             var itemsVisible = [];
             var itemsHidden = [];
             var index = 0;
@@ -255,6 +270,23 @@ var Scroller = function () {
         }
 
         /**
+         * Set initial state
+         */
+
+    }, {
+        key: 'initState',
+        value: function initState() {
+            this.state = {
+                itemsVisible: [],
+                itemsHidden: [],
+                from: 1,
+                to: this.params.itemsPerPage
+            };
+        }
+
+        /**
+         * Updates/inserts state value and updates state object
+         *
          * @param {String} key
          * @param {String|Number|Object} value
          */
@@ -307,21 +339,45 @@ var Item = function () {
         _classCallCheck(this, Item);
 
         this.index = index;
+        this.height = 115;
     }
 
     /**
-     * @return {Element}
+     * @return {Item}
      */
 
 
     _createClass(Item, [{
         key: 'render',
         value: function render() {
-            var elem = document.createElement('div');
-            elem.className = 'scroller__item';
-            elem.innerHTML = 'Element ' + this.index;
+            this.node = document.createElement('div');
+            this.node.className = 'scroller__item';
+            this.node.innerHTML = 'Element ' + this.index;
 
-            return elem;
+            return this;
+        }
+
+        /**
+         * @param {Element} parentNode
+         * @public
+         */
+
+    }, {
+        key: 'appendTo',
+        value: function appendTo(parentNode) {
+            parentNode.appendChild(this.node);
+        }
+
+        /**
+         * TODO Height is hard-coded for now.
+         * @return {number}
+         * @public
+         */
+
+    }, {
+        key: 'getHeight',
+        value: function getHeight() {
+            return this.height;
         }
     }]);
 
@@ -348,6 +404,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var ScrollListener = exports.ScrollListener = function () {
 
     /**
+     * Handles scroll events and fires callback when top/bottom threshold is reached
+     *
      * @param {Number} timeout
      * @param {Number} threshold
      * @param {function} callback
@@ -361,12 +419,14 @@ var ScrollListener = exports.ScrollListener = function () {
         this.timer = 0;
         this.callback = callback;
 
-        if (window) {
+        if (typeof window !== 'undefined') {
             window.addEventListener('scroll', this._timer.bind(this, this._onScroll));
         }
     }
 
     /**
+     * Throttle scroll events for performance
+     *
      * @param {function} callback
      * @private
      */
@@ -386,8 +446,7 @@ var ScrollListener = exports.ScrollListener = function () {
     }, {
         key: '_onScroll',
         value: function _onScroll() {
-            var document = document.documentElement;
-            var scrollFromTop = (window.pageYOffset || document.scrollTop) - (document.clientTop || 0);
+            var scrollFromTop = (window.pageYOffset || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0);
             if (this._isBottomThresholdReached(scrollFromTop)) {
                 this.callback(EVENT_TYPE_ADD);
             } else if (this._isTopThresholdReached(scrollFromTop)) {
@@ -404,8 +463,7 @@ var ScrollListener = exports.ScrollListener = function () {
     }, {
         key: '_isBottomThresholdReached',
         value: function _isBottomThresholdReached(scrollFromTop) {
-            var document = document.documentElement;
-            return scrollFromTop + document.clientHeight + this.threshold >= document.scrollHeight;
+            return scrollFromTop + document.documentElement.clientHeight + this.threshold >= document.documentElement.scrollHeight;
         }
 
         /**
