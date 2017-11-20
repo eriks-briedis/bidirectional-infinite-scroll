@@ -30,8 +30,7 @@ export class ScrollListener {
      * @private
      */
     _onScroll() {
-        let document = document.documentElement;
-        let scrollFromTop = (window.pageYOffset || document.scrollTop) - (document.clientTop || 0);
+        let scrollFromTop = (window.pageYOffset || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0);
         if (this._isBottomThresholdReached(scrollFromTop)) {
             this.callback(EVENT_TYPE_ADD);
         } else if (this._isTopThresholdReached(scrollFromTop)) {
@@ -45,8 +44,7 @@ export class ScrollListener {
      * @private
      */
     _isBottomThresholdReached(scrollFromTop) {
-        let document = document.documentElement;
-        return (scrollFromTop + document.clientHeight + this.threshold >= document.scrollHeight);
+        return (scrollFromTop + document.documentElement.clientHeight + this.threshold >= document.documentElement.scrollHeight);
     }
 
     /**

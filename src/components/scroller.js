@@ -23,8 +23,6 @@ export default class Scroller {
             this.params.threshold,
             this.onModify.bind(this)
         );
-
-        this._setItems();
     }
 
     render() {
@@ -39,7 +37,7 @@ export default class Scroller {
      * @private
      */
     _renderList() {
-        this._setItems();
+        this.setItems();
         this.itemsNode.innerHTML = '';
         this.state.itemsVisible.map(this._renderItem.bind(this));
         this._recalculateOffsetFromTop();
@@ -65,26 +63,21 @@ export default class Scroller {
                 this.subtract();
                 break;
         }
-
         this._renderList();
     }
 
     /**
-     * @return {boolean}
+     * @public
      */
     subtract() {
-        if (this.state.from - this.params.itemsPerPage <= 0) {
-            this.setState('from', 1);
-            this.setState('to', 1 + this.params.itemsPerPage);
-            return false;
-        }
-
-        this.setState('from', this.state.from - this.params.itemsPerPage);
+        let from = this.state.from - this.params.itemsPerPage;
+        this.setState('from', Math.max(1, from));
         this.setState('to', this.state.to - this.params.itemsPerPage);
     }
 
     /**
      * @return {boolean}
+     * @public
      */
     add() {
         if (this.state.to >= this.params.maxTotalItems) {
@@ -93,7 +86,7 @@ export default class Scroller {
 
         this.setState('to', this.state.to + this.params.itemsPerPage);
 
-        if (this.state.to - this.params.maxItemsVisible > this.state.from) {
+        if (this.state.to - this.state.from >= this.params.maxItemsVisible) {
             this.setState('from', this.state.from + this.params.itemsPerPage);
         }
     }
@@ -108,9 +101,9 @@ export default class Scroller {
     }
 
     /**
-     * @private
+     * Render items as hidden or visible depending on visible range
      */
-    _setItems() {
+    setItems() {
         let itemsVisible = [];
         let itemsHidden = [];
         let index = 0;
