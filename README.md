@@ -1,6 +1,6 @@
-#Bidirectional infinite scroll
+# Bidirectional infinite scroll
 JS bundle is already compiled so this scroll example is ready to be run. 
-###Simple instructions
+### Simple instructions
 To compile JS run:
 
     npm run build
