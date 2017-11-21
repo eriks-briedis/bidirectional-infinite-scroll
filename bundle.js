@@ -77,11 +77,11 @@ var _scroller2 = _interopRequireDefault(_scroller);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var scroller = new _scroller2.default({
-    threshold: 300,
+    threshold: 500,
     itemsPerPage: 10,
     maxItemsVisible: 30,
     scrollTimeout: 50,
-    maxTotalItems: 100
+    maxTotalItems: 1000
 });
 scroller.render().appendTo(document.getElementById('app'));
 
@@ -261,7 +261,7 @@ var Scroller = function () {
 
             while (index < this.state.to) {
                 index++;
-                var item = new _item2.default(index);
+                var item = this.getOrAddItemToState(index);
                 this.state.from === 1 || index >= this.state.from ? itemsVisible.push(item) : itemsHidden.push(item);
             }
 
@@ -277,6 +277,7 @@ var Scroller = function () {
         key: 'initState',
         value: function initState() {
             this.state = {
+                items: {},
                 itemsVisible: [],
                 itemsHidden: [],
                 from: 1,
@@ -297,6 +298,23 @@ var Scroller = function () {
             var state = {};
             state[key] = value;
             this.state = Object.assign({}, this.state, state);
+        }
+
+        /**
+         * @param {number} index
+         * @return {Item}
+         */
+
+    }, {
+        key: 'getOrAddItemToState',
+        value: function getOrAddItemToState(index) {
+            var items = Object.assign({}, this.state.items);
+            if (!items[index]) {
+                items[index] = new _item2.default(index);
+                this.setState('items', items);
+            }
+
+            return this.state.items[index];
         }
 
         /**
@@ -339,7 +357,7 @@ var Item = function () {
         _classCallCheck(this, Item);
 
         this.index = index;
-        this.height = 115;
+        this.height = 155;
     }
 
     /**
@@ -352,7 +370,16 @@ var Item = function () {
         value: function render() {
             this.node = document.createElement('div');
             this.node.className = 'scroller__item';
-            this.node.innerHTML = 'Element ' + this.index;
+            this.node.style.height = this.height + 'px';
+
+            var text = document.createElement('h5');
+            text.innerHTML = 'Element ' + this.index;
+            this.node.appendChild(text);
+
+            var image = document.createElement('img');
+            image.src = 'http://via.placeholder.com/350x100';
+            image.style.height = '100px';
+            this.node.appendChild(image);
 
             return this;
         }
@@ -463,7 +490,7 @@ var ScrollListener = exports.ScrollListener = function () {
     }, {
         key: '_isBottomThresholdReached',
         value: function _isBottomThresholdReached(scrollFromTop) {
-            return scrollFromTop + document.documentElement.clientHeight + this.threshold >= document.documentElement.scrollHeight;
+            return document.documentElement.scrollHeight - (scrollFromTop + document.documentElement.clientHeight) <= this.threshold;
         }
 
         /**
