@@ -48,7 +48,7 @@ export class ScrollListener {
      * @private
      */
     _isBottomThresholdReached(scrollFromTop) {
-        return (scrollFromTop + document.documentElement.clientHeight + this.threshold >= document.documentElement.scrollHeight);
+        return (document.documentElement.scrollHeight - (scrollFromTop + document.documentElement.clientHeight) <= this.threshold);
     }
 
     /**

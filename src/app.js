@@ -1,10 +1,10 @@
 import Scroller from './components/scroller';
 
 let scroller = new Scroller({
-    threshold: 300,
+    threshold: 500,
     itemsPerPage: 10,
     maxItemsVisible: 30,
     scrollTimeout: 50,
-    maxTotalItems: 100
+    maxTotalItems: 1000
 });
 scroller.render().appendTo(document.getElementById('app'));

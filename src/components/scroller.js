@@ -126,7 +126,7 @@ export default class Scroller {
 
         while (index < this.state.to) {
             index++;
-            let item = new Item(index);
+            let item = this.getOrAddItemToState(index);
             (this.state.from === 1 || index >= this.state.from) ? itemsVisible.push(item) : itemsHidden.push(item);
         }
 
@@ -139,6 +139,7 @@ export default class Scroller {
      */
     initState() {
         this.state = {
+            items: {},
             itemsVisible: [],
             itemsHidden: [],
             from: 1,
@@ -156,6 +157,20 @@ export default class Scroller {
         let state = {};
         state[key] = value;
         this.state = Object.assign({}, this.state, state);
+    }
+
+    /**
+     * @param {number} index
+     * @return {Item}
+     */
+    getOrAddItemToState(index) {
+        let items = Object.assign({}, this.state.items);
+        if (!items[index]) {
+            items[index] = new Item(index);
+            this.setState('items', items);
+        }
+
+        return this.state.items[index];
     }
 
     /**

@@ -4,9 +4,7 @@
 
 .scroller__item {
     width: 90%;
-    height: 100px;
     margin: 0 5% 15px;
     border: 1px solid #ddd;
     text-align: center;
-    line-height: 100px;
 }
